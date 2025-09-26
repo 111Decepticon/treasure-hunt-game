@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>寻宝探险游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #fff;
+            min-height: 100vh;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        header {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        
+        .step-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            opacity: 0.5;
+            transform: scale(0.95);
+            transition: all 0.3s ease;
+        }
+        
+        .step-card.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        .step-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .step-number {
+            background: #ffcc00;
+            color: #000;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+            box-shadow: 0 0 8px rgba(255, 204, 0, 0.5);
+            font-size: 0.9rem;
+        }
+        
+        .step-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .step-content {
+            text-align: left;
+            line-height: 1.4;
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+        }
+        
+        .step-animation {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        
+        .animation-icon {
+            font-size: 2rem;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .quiz-container {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        
+        .quiz-question {
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+        
+        .quiz-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        
+        .quiz-option {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        
+        .quiz-option:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .quiz-option.correct {
+            background: #4CAF50;
+        }
+        
+        .quiz-option.incorrect {
+            background: #f44336;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        button {
+            background: #ffcc00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:hover {
+            background: #ffd700;
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        button:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .treasure-result {
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 15px;
+            background: rgba(255, 215, 0, 0.2);
+            border-radius: 10px;
+            margin-top: 15px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: #ffcc00;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        footer {
+            margin-top: 15px;
+            padding: 10px;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .game-area {
+                max-height: 350px;
+            }
+            
+            .step-card {
+                padding: 10px;
+            }
+            
+            .quiz-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏴‍☠️ 寻宝探险游戏 🗺️</h1>
+            <p class="subtitle">跟随线索，解开谜题，找到传说中的宝藏！</p>
+        </header>
+        
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
+        
+        <div class="game-area" id="gameArea">
+            <div class="step-card" id="step1">
+                <div class="step-header">
+                    <div class="step-number">1</div>
+                    <h2 class="step-title">获取初始线索</h2>
+                </div>
+                <div class="step-content">
+                    <p>在古老的图书馆里寻找关于宝藏的第一个线索...</p>
+                </div>
+                <div class="step-animation">
+                    <div class="animation-icon">📚</div>
+                </div>
+            </div>
+            
+            <div class="step-card" id="step2">
+                <div class="step-header">
+                    <div class="step-number">2</div>
+                    <h2 class="step-title">解码古代文字</h2>
+                </div>
+                <div class="step-content">
+                    <p>你发现了一张写满古代文字的羊皮纸，需要正确解码...</p>
+                </div>
+                <div class="quiz-container">
+                    <div class="quiz-question">古代文字中哪个符号代表"宝藏"？</div>
+                    <div class="quiz-options">
+                        <button class="quiz-option" data-correct="false">⚡</button>
+                        <button class="quiz-option" data-correct="true">💎</button>
+                        <button class="quiz-option" data-correct="false">🌙</button>
+                        <button class="quiz-option" data-correct="false">🔥</button>
+                    </div>
+                </div>
+                <div class="step-animation">
+                    <div class="animation-icon">🔍</div>
+                </div>
+            </div>
+            
+            <div class="step-card" id="step3">
+                <div class="step-header">
+                    <div class="step-number">3</div>
+                    <h2 class="step-title">寻找神庙入口</h2>
+                </div>
+                <div class="step-content">
+                    <p>根据解码结果，宝藏位于一座古老的神庙中。找到正确的入口...</p>
+                </div>
+                <div class="quiz-container">
+                    <div class="quiz-question">神庙入口隐藏在哪个方向？</div>
+                    <div class="quiz-options">
+                        <button class="quiz-option" data-correct="false">东面，靠近河流</button>
+                        <button class="quiz-option" data-correct="true">西面，巨石后面</button>
+                        <button class="quiz-option" data-correct="false">南面，棕榈树下</button>
+                        <button class="quiz-option" data-correct="false">北面，山脚下</button>
+                    </div>
+                </div>
+                <div class="step-animation">
+                    <div class="animation-icon">🏛️</div>
+                </div>
+            </div>
+            
+            <div class="step-card" id="step4">
+                <div class="step-header">
+                    <div class="step-number">4</div>
+                    <h2 class="step-title">避开神庙守卫</h2>
+                </div>
+                <div class="step-content">
+                    <p>神庙中有古老的守卫机制，需要巧妙避开...</p>
+                </div>
+                <div class="step-animation">
+                    <div class="animation-icon">⚔️</div>
+                </div>
+            </div>
+            
+            <div class="step-card" id="step5">
+                <div class="step-header">
+                    <div class="step-number">5</div>
+                    <h2 class="step-title">打开宝藏箱</h2>
+                </div>
+                <div class="step-content">
+                    <p>你找到了神秘的宝藏箱！但需要解开最后的谜题才能打开它...</p>
+                </div>
+                <div class="quiz-container">
+                    <div class="quiz-question">宝藏箱上的谜题：什么东西越洗越脏？</div>
+                    <div class="quiz-options">
+                        <button class="quiz-option" data-correct="false">衣服</button>
+                        <button class="quiz-option" data-correct="true">水</button>
+                        <button class="quiz-option" data-correct="false">肥皂</button>
+                        <button class="quiz-option" data-correct="false">手</button>
+                    </div>
+                </div>
+                <div class="step-animation">
+                    <div class="animation-icon">🎁</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="treasure-result" id="treasureResult">
+            寻宝尚未开始...
+        </div>
+        
+        <div class="controls">
+            <button id="startBtn">开始寻宝</button>
+            <button id="resetBtn" disabled>重新开始</button>
+        </div>
+        
+        <footer>
+            <p>寻宝游戏 - 使用 async/await 实现的异步寻宝过程</p>
+        </footer>
+    </div>
+
+    <script>
+        // 模拟宝藏地图API - 使用async/await重写
+        class TreasureMap {
+            static async getInitialClue() {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve("在古老的图书馆里找到了第一个线索：'当太阳与月亮相遇，宝石将指引方向'");
+                    }, 1500);
+                });
+            }
+            
+            static async decodeAncientScript(clue) {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        if (!clue) {
+                            reject("没有线索可以解码!");
+                        }
+                        resolve("解码成功! 线索指向一座位于失落山谷中的古老神庙...");
+                    }, 2000);
+                });
+            }
+            
+            static async searchTemple(location) {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        const random = Math.random();
+                        if (random < 0.4) {
+                            reject("糟糕!遇到了神庙守卫! 寻宝失败!");
+                        } else {
+                            resolve("成功避开守卫! 找到了一个刻有神秘符文的箱子...");
+                        }
+                    }, 2500);
+                });
+            }
+            
+            static async openTreasureBox() {
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        resolve("恭喜!你找到了传说中的宝藏——一颗发光的远古宝石!");
+                    }, 1500);
+                });
+            }
+        }
+        
+        // 游戏状态管理
+        const gameState = {
+            currentStep: 0,
+            totalSteps: 5,
+            isPlaying: false,
+            quizAnswered: false,
+            gameFailed: false
+        };
+        
+        // DOM元素
+        const stepCards = document.querySelectorAll('.step-card');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const treasureResult = document.getElementById('treasureResult');
+        const progressBar = document.getElementById('progress');
+        const quizOptions = document.querySelectorAll('.quiz-option');
+        const gameArea = document.getElementById('gameArea');
+        
+        // 更新进度条
+        function updateProgress() {
+            const progress = (gameState.currentStep / gameState.totalSteps) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+        
+        // 激活当前步骤
+        function activateStep(stepIndex) {
+            stepCards.forEach((card, index) => {
+                if (index === stepIndex) {
+                    card.classList.add('active');
+                    // 滚动到当前步骤
+                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    card.classList.remove('active');
+                }
+            });
+        }
+        
+        // 处理答题
+        function setupQuizHandlers() {
+            quizOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    if (gameState.quizAnswered || gameState.gameFailed) return;
+                    
+                    gameState.quizAnswered = true;
+                    const isCorrect = this.getAttribute('data-correct') === 'true';
+                    
+                    // 显示答案对错
+                    quizOptions.forEach(opt => {
+                        if (opt.getAttribute('data-correct') === 'true') {
+                            opt.classList.add('correct');
+                        }
+                        if (opt === this && !isCorrect) {
+                            opt.classList.add('incorrect');
+                        }
+                    });
+                    
+                    if (isCorrect) {
+                        setTimeout(() => {
+                            proceedToNextStep();
+                        }, 1000);
+                    } else {
+                        gameState.gameFailed = true;
+                        treasureResult.textContent = "答案错误! 寻宝失败!";
+                        resetBtn.disabled = false;
+                        gameState.isPlaying = false;
+                    }
+                });
+            });
+        }
+        
+        // 重置答题状态
+        function resetQuiz() {
+            quizOptions.forEach(option => {
+                option.classList.remove('correct', 'incorrect');
+            });
+            gameState.quizAnswered = false;
+        }
+        
+        // 进行到下一步
+        function proceedToNextStep() {
+            gameState.currentStep++;
+            updateProgress();
+            activateStep(gameState.currentStep - 1);
+            
+            if (gameState.currentStep > gameState.totalSteps) {
+                endGame();
+            }
+        }
+        
+        // 结束游戏
+        function endGame() {
+            treasureResult.textContent = "恭喜! 你成功找到了传说中的宝藏!";
+            resetBtn.disabled = false;
+            gameState.isPlaying = false;
+        }
+        
+        // 开始游戏
+        async function startGame() {
+            if (gameState.isPlaying) return;
+            
+            gameState.isPlaying = true;
+            gameState.gameFailed = false;
+            startBtn.disabled = true;
+            resetBtn.disabled = true;
+            gameState.currentStep = 0;
+            updateProgress();
+            
+            // 重置所有步骤
+            stepCards.forEach(card => card.classList.remove('active'));
+            treasureResult.textContent = "寻宝进行中...";
+            
+            try {
+                // 步骤1: 获取初始线索
+                gameState.currentStep = 1;
+                updateProgress();
+                activateStep(0);
+                const clue = await TreasureMap.getInitialClue();
+                document.querySelector('#step1 .step-content p').textContent = clue;
+                
+                // 步骤2: 解码古代文字
+                gameState.currentStep = 2;
+                updateProgress();
+                activateStep(1);
+                resetQuiz();
+                const decodedLocation = await TreasureMap.decodeAncientScript(clue);
+                document.querySelector('#step2 .step-content p').textContent = decodedLocation;
+                
+                // 等待用户答题
+                await new Promise(resolve => {
+                    const checkQuiz = setInterval(() => {
+                        if (gameState.quizAnswered || gameState.gameFailed) {
+                            clearInterval(checkQuiz);
+                            resolve();
+                        }
+                    }, 100);
+                });
+                
+                if (gameState.gameFailed) return;
+                
+                // 步骤3: 寻找神庙入口
+                gameState.currentStep = 3;
+                updateProgress();
+                activateStep(2);
+                resetQuiz();
+                
+                // 等待用户答题
+                await new Promise(resolve => {
+                    const checkQuiz = setInterval(() => {
+                        if (gameState.quizAnswered || gameState.gameFailed) {
+                            clearInterval(checkQuiz);
+                            resolve();
+                        }
+                    }, 100);
+                });
+                
+                if (gameState.gameFailed) return;
+                
+                // 步骤4: 避开神庙守卫
+                gameState.currentStep = 4;
+                updateProgress();
+                activateStep(3);
+                
+                const templeResult = await TreasureMap.searchTemple(decodedLocation);
+                document.querySelector('#step4 .step-content p').textContent = templeResult;
+                
+                // 步骤5: 打开宝藏箱
+                gameState.currentStep = 5;
+                updateProgress();
+                activateStep(4);
+                resetQuiz();
+                
+                // 等待用户答题
+                await new Promise(resolve => {
+                    const checkQuiz = setInterval(() => {
+                        if (gameState.quizAnswered || gameState.gameFailed) {
+                            clearInterval(checkQuiz);
+                            resolve();
+                        }
+                    }, 100);
+                });
+                
+                if (gameState.gameFailed) return;
+                
+                const treasure = await TreasureMap.openTreasureBox();
+                treasureResult.textContent = treasure;
+                
+                // 完成游戏
+                gameState.currentStep = 6;
+                updateProgress();
+                
+            } catch (error) {
+                gameState.gameFailed = true;
+                treasureResult.textContent = "寻宝失败: " + error;
+            } finally {
+                resetBtn.disabled = false;
+                gameState.isPlaying = false;
+            }
+        }
+        
+        // 重置游戏
+        function resetGame() {
+            gameState.currentStep = 0;
+            gameState.isPlaying = false;
+            gameState.quizAnswered = false;
+            gameState.gameFailed = false;
+            
+            stepCards.forEach(card => card.classList.remove('active'));
+            quizOptions.forEach(option => {
+                option.classList.remove('correct', 'incorrect');
+            });
+            
+            // 重置文本内容
+            document.querySelector('#step1 .step-content p').textContent = "在古老的图书馆里寻找关于宝藏的第一个线索...";
+            document.querySelector('#step2 .step-content p').textContent = "你发现了一张写满古代文字的羊皮纸，需要正确解码...";
+            document.querySelector('#step4 .step-content p').textContent = "神庙中有古老的守卫机制，需要巧妙避开...";
+            treasureResult.textContent = "寻宝尚未开始...";
+            
+            updateProgress();
+            startBtn.disabled = false;
+            resetBtn.disabled = true;
+            
+            // 滚动到顶部
+            gameArea.scrollTop = 0;
+        }
+        
+        // 事件监听
+        startBtn.addEventListener('click', startGame);
+        resetBtn.addEventListener('click', resetGame);
+        
+        // 初始化答题处理
+        setupQuizHandlers();
+        
+        // 初始激活第一步
+        activateStep(0);
+    </script>
+</body>
+</html>
